@@ -1,0 +1,58 @@
+# ---------------------------------------------------------------------------
+# Render Blueprint — Christian Church Management System
+#
+# Creates:
+#   1. A managed PostgreSQL database
+#   2. A Node web service running the React frontend + REST API
+#
+# Deploy with: Render Dashboard → New → Blueprint → select this repository.
+# ---------------------------------------------------------------------------
+databases:
+  - name: church-db
+    databaseName: church
+    user: church
+    plan: free
+
+services:
+  - type: web
+    name: church-web
+    runtime: node
+    plan: free
+    region: oregon
+    branch: main
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: church-db
+          property: connectionString
+      # Generated once by Render and kept secret.
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: PG_POOL_MAX
+        value: "5"
+      # Set these to the public URL of the service after the first deploy
+      # (for example https://church-web.onrender.com or a custom domain).
+      - key: NEXT_PUBLIC_SITE_URL
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      # Same-origin API by default. Point at another host only when the
+      # frontend and backend are deployed as separate Render services.
+      - key: NEXT_PUBLIC_API_URL
+        value: /api
+      # Initial administrator used by `npm run seed`. Set real values in the
+      # Render dashboard before running the seed command; never commit them.
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_NAME
+        sync: false
